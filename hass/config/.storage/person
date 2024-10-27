@@ -1,0 +1,15 @@
+{
+  "version": 2,
+  "minor_version": 1,
+  "key": "person",
+  "data": {
+    "items": [
+      {
+        "id": "crowd_detection",
+        "name": "crowd-detection",
+        "user_id": "bd42344192b041b1b09e4ebbb4d5d227",
+        "device_trackers": []
+      }
+    ]
+  }
+}

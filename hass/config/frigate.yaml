@@ -1,0 +1,119 @@
+mqtt:
+  # Optional: Enable mqtt server (default: shown below)
+  enabled: True
+  # Required: host name
+  host: 192.168.111.252
+  # Optional: port (default: shown below)
+  port: 1883
+  user: crowd-detection
+  password: Iec@2024
+
+model:
+  width: 320 # <--- should match whatever was set in notebook
+  height: 320 # <--- should match whatever was set in notebook
+  path: /media/frigate/ssdlite_mobiledet_coco_qat_postprocess.tflite
+  labelmap_path: /media/frigate/label_map.txt
+  labelmap:
+    0: crowd
+    1: not_person
+
+objects:
+  # Optional: list of objects to track from labelmap.txt (default: shown below)
+  track:
+    - crowd
+  # Optional: mask to prevent all object types from being detected in certain areas (default: no mask)
+  # Checks based on the bottom center of the bounding box of the object.
+  # NOTE: This mask is COMBINED with the object type specific mask below
+  # Optional: filters to reduce false positives for specific object types
+  filters:
+    crowd:
+      # Optional: minimum score for the object to initiate tracking (default: shown below)
+      min_score: 0.1
+      # Optional: minimum decimal percentage for tracked object's computed score to be considered a true positive (default: shown below)
+      threshold: 0.1
+      # Optional: mask to prevent this object type from being detected in certain areas (default: no mask)
+      # Checks based on the bottom center of the bounding box of the object
+record:
+  enabled: True
+  retain:
+    days: 3
+    mode: all
+detect:
+  # Optional: width of the frame for the input with the detect role (default: use native stream resolution)
+  width: 640
+  # Optional: height of the frame for the input with the detect role (default: use native stream resolution)
+  height: 640
+  # Optional: desired fps for your camera for the input with the detect role (default: shown below)
+  # NOTE: Recommended value of 5. Ideally, try and reduce your FPS on the camera.
+  fps: 5
+  # Optional: enables detection for the camera (default: True)
+  enabled: true
+  # Optional: Number of consecutive detection hits required for an object to be initialized in the tracker. (default: 1/2 the frame rate)
+  min_initialized: 1
+  # Optional: Number of frames without a detection before Frigate considers an object to be gone. (default: 5x the frame rate)
+  max_disappeared: 5
+snapshots:
+  # Optional: Enable writing jpg snapshot to /media/frigate/clips (default: shown below)
+  enabled: True
+  # Optional: save a clean PNG copy of the snapshot image (default: shown below)
+  clean_copy: False
+  # Optional: print a timestamp on the snapshots (default: shown below)
+  timestamp: False
+  # Optional: draw bounding box on the snapshots (default: shown below)
+  bounding_box: True
+  # Optional: crop the snapshot (default: shown below)
+  crop: False
+  # Optional: height to resize the snapshot to (default: original size)
+  height: 175
+  # Optional: Camera override for retention settings (default: global values)
+  retain:
+    # Required: Default retention days (default: shown below)
+    default: 1
+    # Optional: Per object retention days
+    objects:
+      crowd: 1
+  # Optional: quality of the encoded jpeg, 0-100 (default: shown below)
+  quality: 70
+
+review:
+  # Optional: alerts configuration
+  alerts:
+  #   # Optional: labels that qualify as an alert (default: shown below)
+    labels:
+      - not_person
+  #     - person
+  #   # Optional: required zones for an object to be marked as an alert (default: none)
+  #   # NOTE: when settings required zones globally, this zone must exist on all cameras
+  #   #       or the config will be considered invalid. In that case the required_zones
+  #   #       should be configured at the camera level.
+  # # Optional: detections configuration
+  detections:
+    # Optional: labels that qualify as a detection (default: all labels that are tracked / listened to)
+    labels:
+      - crowd
+    # Optional: required zones for an object to be marked as a detection (default: none)
+    # NOTE: when settings required zones globally, this zone must exist on all cameras
+    #       or the config will be considered invalid. In that case the required_zones
+    #       should be configured at the camera level.
+
+cameras:
+  camera_1: # <------ Name the camera
+    enabled: true
+    ffmpeg:
+      inputs:
+        - path: /media/frigate/videoplayback.mp4 # <----- The stream you want to use for detection
+          input_args: -re -stream_loop -1 -fflags +genpts
+          roles:
+            - detect
+            - record
+          
+
+
+camera_groups:
+  camera1:
+    order: 1
+    icon: LuAirplay
+    cameras:
+      - birdseye
+      - camera_1
+version: 0.14

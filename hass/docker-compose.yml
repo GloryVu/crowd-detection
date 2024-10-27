@@ -1,0 +1,16 @@
+services:
+  homeassistant:
+    container_name: hass
+    image: ghcr.io/home-assistant/home-assistant:stable
+    network_mode: host
+    ports:
+      - "8123:8123"
+    volumes:
+      - ./config:/config
+    environment:
+      - TZ=America/New_York  # Replace with your timezone
+  frigate:
+    image: ghcr.io/blakeblackshear/frigate:stable
+    
+    ports:
+      - "5000:5000"

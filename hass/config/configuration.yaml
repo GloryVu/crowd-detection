@@ -1,0 +1,13 @@
+homeassistant:
+  name: Home
+  latitude: 51.528308
+  longitude: -0.3817765
+  elevation: 21
+  unit_system: metric
+  currency: USD
+  time_zone: America/New_York
+  external_url: "https://example.duckdns.org"
+
+# # Example integration (e.g., Frigate integration with Home Assistant)
+# frigate:
+#   url: http://frigate:5000
