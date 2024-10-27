@@ -39,6 +39,13 @@ class ModelConfig(BaseModel):
     labelmap_path: Optional[str] = Field(title="Label map for custom object detector.")
     width: int = Field(default=320, title="Object detection model input width.")
     height: int = Field(default=320, title="Object detection model input height.")
+    crow_threshold: int = Field(
+        default=5, title="min number of people in frame to be consider as crowd."
+    )
+    min_person_score: float = Field(
+        default=0.6, title="person confidence score threshold."
+    )
+
     labelmap: Dict[int, str] = Field(
         default_factory=dict, title="Labelmap customization."
     )

@@ -75,6 +75,47 @@ class LocalObjectDetector(ObjectDetector):
         return self.detect_api.detect_raw(tensor_input=tensor_input)
 
 
+def process_detections(detections, detector_config):
+    # Filter for person detections (class ID 0)
+    person_detections = [
+        det
+        for det in detections
+        if det[0] == 0 and det[1] >= detector_config.model.min_person_score
+    ]
+    # Check if the number of person detections exceeds the threshold
+    if len(person_detections) > detector_config.model.crow_threshold:
+        # Combine bounding boxes for a crowd
+        min_x = min(det[2] for det in person_detections)
+        min_y = min(det[3] for det in person_detections)
+        max_x = max(det[4] for det in person_detections)
+        max_y = max(det[5] for det in person_detections)
+
+        # Define the new crowd bounding box
+        crowd_bbox = (min_x, min_y, max_x, max_y)
+
+        # Create a new "crowd" detection with class ID 90 and average confidence
+        avg_confidence = sum(det[1] for det in person_detections) / len(
+            person_detections
+        )
+        crowd_detection = np.array(
+            [
+                90,
+                1.0,
+                min_x,
+                min_y,
+                max_x,
+                max_y,
+            ]
+        )
+
+        # Remove all individual person detections and add the crowd detection
+
+        detections = np.vstack([crowd_detection, detections])[:20]
+        logger.info(crowd_detection)
+
+    return detections
+
+
 def run_detector(
     name: str,
     detection_queue: mp.Queue,
@@ -123,6 +164,10 @@ def run_detector(
         # detect and send the output
         start.value = datetime.datetime.now().timestamp()
         detections = object_detector.detect_raw(input_frame)
+
+        detections = process_detections(
+            detections=detections, detector_config=detector_config
+        )
         duration = datetime.datetime.now().timestamp() - start.value
         outputs[connection_id]["np"][:] = detections[:]
         out_events[connection_id].set()
