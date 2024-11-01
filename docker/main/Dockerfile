@@ -54,7 +54,7 @@ RUN apt-get -qq update \
     && apt-get -qq install -y wget python3 python3-distutils \
     && wget -q https://bootstrap.pypa.io/get-pip.py -O get-pip.py \
     && python3 get-pip.py "pip" \
-    && pip install -r /requirements-ov.txt
+    && pip install -r /requirements-ov.txt --default-timeout=10000
 
 # Get OpenVino Model
 RUN mkdir /models \
@@ -148,7 +148,7 @@ RUN wget -q https://bootstrap.pypa.io/get-pip.py -O get-pip.py \
     && python3 get-pip.py "pip"
 
 COPY docker/main/requirements.txt /requirements.txt
-RUN pip3 install -r /requirements.txt
+RUN pip3 install -r /requirements.txt --default-timeout=10000
 
 COPY docker/main/requirements-wheels.txt /requirements-wheels.txt
 RUN pip3 wheel --wheel-dir=/wheels -r /requirements-wheels.txt
@@ -184,7 +184,7 @@ RUN --mount=type=bind,source=docker/main/install_deps.sh,target=/deps/install_de
 
 RUN --mount=type=bind,from=wheels,source=/wheels,target=/deps/wheels \
     python3 -m pip install --upgrade pip && \
-    pip3 install -U /deps/wheels/*.whl
+    pip3 install -U /deps/wheels/*.whl --default-timeout=10000
 
 COPY --from=deps-rootfs / /
 
@@ -230,14 +230,14 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 RUN --mount=type=bind,source=./docker/main/requirements-dev.txt,target=/workspace/frigate/requirements-dev.txt \
-    pip3 install -r requirements-dev.txt
+    pip3 install -r requirements-dev.txt --default-timeout=10000
 
 CMD ["sleep", "infinity"]
 
 
 # Frigate web build
 # This should be architecture agnostic, so speed up the build on multiarch by not using QEMU.
-FROM --platform=$BUILDPLATFORM node:16 AS web-build
+FROM --platform=$BUILDPLATFORM node:18 AS web-build
 
 WORKDIR /work
 COPY web/package.json web/package-lock.json ./

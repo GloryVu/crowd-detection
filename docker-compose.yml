@@ -34,6 +34,9 @@ services:
       - ./config:/config
       - ./debug:/media/frigate
       - /dev/bus/usb:/dev/bus/usb
+    command: ls
+    env_file:
+      - .env
   mqtt:
     container_name: mqtt
     image: eclipse-mosquitto:1.6
